@@ -1,5 +1,5 @@
 var INSERT = true;
-var APIKEY = "";
+var APIKEY = "e8147b447631ec3d554bdb7f93d5f5386299cc6c";
 
 // Leaflet map setup
 var map = L.map('map', {
@@ -29,17 +29,17 @@ $.ajax("https://npzimmerman.cartodb.com/api/v2/sql?q=SELECT * FROM pizza_ratings
 // 2. The cartodb.js client (which provides SQL templating and a simpler argument interface
 // First, we create the client (notice that we tell it we want geojson)
 var sqlClient = new cartodb.SQL({
-  user: 'npzimmerman',
+  user: 'eneedham',
   format: 'geojson'
 });
 
 // Then we specify the SQL we want to execute (the second argument is where params are provided)
 // e.g.: sqlClient.execute("SELECT * FROM pizza_ratings WHERE ratings > {{rating}}", {rating: 4})
-sqlClient.execute("SELECT * FROM pizza_ratings")
+sqlClient.execute("SELECT * FROM pizza_table")
   .done(function(data) {
     L.geoJson(data, {
       onEachFeature: function(feature, layer) {
-        layer.on('click', function() { fillForm(feature.properties.name, feature.properties.rating); });
+        layer.on('click', function() { fillForm(feature.properties.name, feature.properties.rating); editForm();});
       }
     }).addTo(map);
   })
@@ -71,13 +71,18 @@ var fillForm = function(name, rating) {
   $('#rating').val(rating);
 };
 
+//Function to enable the form and edit it on click of points
+var editForm = function(){
+  $("#edit").prop('disabled', false);
+};
+
 // Function called when review is complete
 var reviewComplete = function(lat, lng, name, rating) {
-  var sql = "INSERT INTO pizza_ratings (the_geom, name, rating)" +
+  var sql = "INSERT INTO pizza_table (the_geom, name, rating)" +
         "VALUES (ST_GeomFromText('POINT(" + lng + ' ' + lat +
         ")', 4326),'" + name + "', " + rating +
         ")&api_key=" + APIKEY;
-  $.ajax('https://npzimmerman.cartodb.com/api/v2/sql?q=' + sql).done(function() {
+  $.ajax('https://eneedham.cartodb.com/api/v2/sql?q=' + sql).done(function() {
     $('#name').prop('disabled', false);
     $('#rating').prop('disabled', false);
     $('#submit').prop('disabled', false);
@@ -95,6 +100,36 @@ $('#submit').click(function() {
   $('#name').val("").prop('disabled', true);
   $('#rating').val("").prop('disabled', true);
   $('#submit').prop('disabled', true);
+});
+
+// Function called when review is complete
+var updateReview = function(name, rating) {
+  var sql = "UPDATE pizza_table (the_geom, name, rating)" +
+        "SET name = "+name+", rating = "+rating+
+        "WHERE name = 'bob pizza'"+
+        ")&api_key=" + APIKEY;
+  $.ajax('https://eneedham.cartodb.com/api/v2/sql?q=' + sql).done(function() {
+    $('#name').prop('disabled', true);
+    $('#rating').prop('disabled', true);
+    $('#submit').prop('disabled', true);
+  });
+};
+
+$('#edit').click(function(){
+  $('#name').prop('disabled', false);
+  $('#rating').prop('disabled', false);
+  // $('#lat').prop('disabled', false);
+  // $('#lng').prop('disabled', false);
+  $('#update').prop('disabled', false);
+  $('#edit').prop('disabled', true);
+});
+
+$('#update').click(function(){
+  console.log("hello world");
+  updateReview(
+    $('#name').val(),
+    $('#rating').val()
+  );
 });
 
 // Handling the creation of Leaflet.Draw layers
@@ -119,5 +154,3 @@ map.on('draw:created', function (e) {
   map.addLayer(layer);
   drawnLayerID = layer._leaflet_id;
 });
-
-

@@ -1,7 +1,7 @@
 // Leaflet map setup
 var map = L.map('map', {
-  center: [40.75583970971843, -73.795166015625],
-  zoom: 11
+  center: [9.123675, -79.695887],
+  zoom: 16
 });
 
 var Stamen_TonerLite = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
@@ -18,34 +18,30 @@ var CARTOCSS = [
   'Map {',
   '-torque-frame-count:256;',
   '-torque-animation-duration:30;',
-  '-torque-time-attribute:"pickup_datetime";',
+  '-torque-time-attribute:"cartodb_id";',
   '-torque-aggregation-function:"count(cartodb_id)";',
-  '-torque-resolution:2;',
+  '-torque-resolution:8;',
   '-torque-data-aggregation:linear;',
   '}',
-  '#ny_taxi_dec_2015_copy{',
-  'comp-op: lighter;',
-  'marker-fill-opacity: 0.9;',
-  'marker-line-color: #FFF;',
-  'marker-line-width: 0;',
-  'marker-line-opacity: 1;',
-  'marker-type: ellipse;',
-  'marker-width: 6;',
-  'marker-fill: #0F3B82;',
+  '#toucan_movement_seed_dispersal_gamboa_kays_et_al{',
+    'comp-op: lighter;',
+    'marker-fill-opacity: 0.9;',
+    'marker-line-color: #FFFFFF;',
+    'marker-line-width: 0;',
+    'marker-line-opacity: 1;',
+    'marker-type: ellipse;',
+    'marker-width: 6;',
+    'marker-fill: #FF5C00;',
   '}',
-  '#ny_taxi_dec_2015_copy[frame-offset=1] {',
-  'marker-width:8;',
-  'marker-fill-opacity:0.45; ',
-  '}',
-  '#ny_taxi_dec_2015_copy[frame-offset=2] {',
-  'marker-width:10;',
-  'marker-fill-opacity:0.225; ',
+  '#toucan_movement_seed_dispersal_gamboa_kays_et_al[frame-offset=1] {',
+   'marker-width:8;',
+   'marker-fill-opacity:0.45;',
   '}'
 ].join('\n');
 
 // Create the actual layer to be used
 var torqueLayer = new L.TorqueLayer({
-  user: 'npzimmerman',
+  user: 'eneedham',
   cartocss: CARTOCSS
 });
 torqueLayer.addTo(map);
@@ -58,7 +54,7 @@ torqueLayer.on('change:time', function(d) {
 });
 
 // We'll just create some buttons for the first 7 days of cab data
-_.each([1, 2, 3, 4, 5, 6, 7], function(num) {
+_.each([08, 09, 10, 11, 12], function(num) {
   var button = $('<button>')
     .addClass('btn')
     .addClass('btn-default')
@@ -66,12 +62,11 @@ _.each([1, 2, 3, 4, 5, 6, 7], function(num) {
     .click(function() {
       $('#time-window').empty();
       $('#time-window')
-        .append($('<h1>').text('Date - 2015-12-0' + num))
+        .append($('<h1>').text('Date - 2007-12-' + num))
         .append($('<div>'));
       torqueLayer.stop();
-      torqueLayer.setSQL("SELECT * FROM ny_taxi_dec_2015_copy WHERE (pickup_datetime >= ('2015-12-0" + num + "T00:00:00-05:00') AND pickup_datetime <= ('2015-12-0" + (num + 1) + "T00:00:00-05:00'))");
+      torqueLayer.setSQL("SELECT * FROM toucan_movement_seed_dispersal_gamboa_kays_et_al WHERE individual_local_identifier = '#79896'");
       torqueLayer.play();
     });
   $('#button-container').append(button);
 });
-
